@@ -7,6 +7,7 @@ jobs:
     steps:
       - run: echo "Hello From Circle CI Runner"
       - run: docker --version
+      - run: whoami
       - run: docker ps
 
 workflows:
