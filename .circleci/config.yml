@@ -6,6 +6,8 @@ jobs:
     resource_class: tar3kom/testing_lab
     steps:
       - run: echo "Hello From Circle CI Runner"
+      - run: docker --version
+      - run: docker ps
 
 workflows:
   build_and_test:
