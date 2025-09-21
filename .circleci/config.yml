@@ -1,0 +1,21 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/node:20.11 # ใช้ Node.js 20 บน Docker
+    resource_class: tar3kom/testing_lab
+
+jobs:
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run: echo "Hello from CircleCI Runner + Docker Executor"
+      - run: node -v
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
