@@ -54,7 +54,7 @@ jobs:
           name: Push images
           command: |
             docker push "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}"
-            docker push "${DOCKER_IMAGE}:latest"
+            # docker push "${DOCKER_IMAGE}:latest"
 
       # Deploy ด้วย docker-compose บนเครื่อง runner นี้
       # เราจะสร้างไฟล์ .env เพื่อส่ง IMAGE_TAG ให้ compose
