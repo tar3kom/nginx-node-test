@@ -74,8 +74,6 @@ jobs:
           command: |
             echo "Running containers:"
             docker ps
-            echo "Container logs (last 50 lines):"
-            docker logs --tail 50 $(docker ps --filter "name=_web_1" --format "{{.ID}}" || true)
 
 workflows:
   build_and_deploy:
