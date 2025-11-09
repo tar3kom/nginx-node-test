@@ -31,9 +31,8 @@ jobs:
       - run:
           name: Check Docker & docker-compose
           command: |
-            ls
             docker --version
-            docker-compose --version || (echo "Please install docker-compose on the runner" && exit 1)
+            docker compose --version || (echo "Please install docker-compose on the runner" && exit 1)
             whoami
             docker ps
 
@@ -63,9 +62,9 @@ jobs:
           command: |
             echo "IMAGE_TAG=${IMAGE_TAG_SHA}" > .env
             # ดึง image tag ใหม่ (กรณีเคยมีเก่าอยู่)
-            docker-compose pull web || true
+            docker compose pull web || true
             # ขึ้น service (ไม่ build ที่นี่ ให้ใช้ image ที่ push แล้ว)
-            docker-compose up -d web
+            docker compose up -d web
             # ทำความสะอาด image dangling (ไม่จำเป็น แต่ช่วยลดพื้นที่)
             docker image prune -f
 
