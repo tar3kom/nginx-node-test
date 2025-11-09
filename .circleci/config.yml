@@ -81,7 +81,7 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@2.7.4
+  docker: circleci/docker@1.4.0
 
 # ✅ ประกาศ "pipeline parameter" ไว้ระดับบนสุด
 parameters:
