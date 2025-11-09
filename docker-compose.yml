@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    image: tar3kom/nginx-node-test:latest  # ใช้ image ที่ build จาก dockerhub
+    image: tar3kom/nginx-node-test:${IMAGE_TAG:-latest}  # ใช้ image ที่ build จาก dockerhub
     ports:
       - "3000:3000"
     restart: always
