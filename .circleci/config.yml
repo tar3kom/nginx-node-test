@@ -31,6 +31,7 @@ jobs:
       - run:
           name: Check Docker & docker-compose
           command: |
+            ls
             docker --version
             docker-compose --version || (echo "Please install docker-compose on the runner" && exit 1)
             whoami
