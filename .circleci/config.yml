@@ -81,9 +81,9 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@1.4.0
+  docker: circleci/docker@1.4.0 # ใช้เฉพาะ build/push
 
-# ✅ ประกาศ "pipeline parameter" ไว้ระดับบนสุด
+# pipeline-level (global) parameter
 parameters:
   docker_image:
     type: string
@@ -102,12 +102,13 @@ jobs:
             docker --version
             docker compose version
 
-      # Login Docker Hub (ตั้งค่า env DOCKERHUB_USERNAME/DOCKERHUB_TOKEN ใน Project/Context)
-      - docker/login:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_TOKEN
+      # ✅ ใช้ run แทน docker/login
+      - run:
+          name: Login to Docker Hub
+          command: |
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-      # ใช้ pipeline parameter
+      # build/push ด้วย orb
       - docker/build:
           image: << pipeline.parameters.docker_image >>
           tag: << pipeline.git.revision >>
@@ -116,6 +117,7 @@ jobs:
           image: << pipeline.parameters.docker_image >>
           tag: << pipeline.git.revision >>
 
+      # deploy ด้วย docker compose (ใช้ tag เป็น commit SHA)
       - run:
           name: Deploy with docker compose
           command: |
