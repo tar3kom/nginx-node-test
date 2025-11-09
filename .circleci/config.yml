@@ -1,16 +1,83 @@
+# version: 2.1
+
+# jobs:
+#   build:
+#     machine: true
+#     resource_class: tar3kom/test_build_deploy
+#     steps:
+#       - run: echo "Hello From Circle CI Runner"
+#       - run: docker --version
+#       - run: whoami
+#       - run: docker ps
+
+# workflows:
+#   build_and_test:
+#     jobs:
+#       - build
+
 version: 2.1
 
 jobs:
-  build:
+  build_push_deploy:
     machine: true
     resource_class: tar3kom/test_build_deploy
+    environment:
+      DOCKER_IMAGE: "tar3kom/nginx-node-test"
+      IMAGE_TAG_SHA: << pipeline.git.revision >>
     steps:
-      - run: echo "Hello From Circle CI Runner"
-      - run: docker --version
-      - run: whoami
-      - run: docker ps
+      - checkout
+
+      # ตรวจสอบว่ามี docker และ docker-compose
+      - run:
+          name: Check Docker & docker-compose
+          command: |
+            docker --version
+            docker-compose --version || (echo "Please install docker-compose on the runner" && exit 1)
+            whoami
+            docker ps
+
+      # Login Docker Hub (เก็บ secret ใน CircleCI Project/Context เป็น env: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
+      - run:
+          name: Docker Hub Login
+          command: |
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      # Build image แล้ว tag เป็นทั้ง commit SHA และ latest (หรือจะตัด latest ออกก็ได้)
+      - run:
+          name: Build image
+          command: |
+            docker build -t "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}" -t "${DOCKER_IMAGE}:latest" .
+
+      # Push ทั้งสอง tag
+      - run:
+          name: Push images
+          command: |
+            docker push "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}"
+            docker push "${DOCKER_IMAGE}:latest"
+
+      # Deploy ด้วย docker-compose บนเครื่อง runner นี้
+      # เราจะสร้างไฟล์ .env เพื่อส่ง IMAGE_TAG ให้ compose
+      - run:
+          name: Deploy with docker-compose
+          command: |
+            echo "IMAGE_TAG=${IMAGE_TAG_SHA}" > .env
+            # ดึง image tag ใหม่ (กรณีเคยมีเก่าอยู่)
+            docker-compose pull web || true
+            # ขึ้น service (ไม่ build ที่นี่ ให้ใช้ image ที่ push แล้ว)
+            docker-compose up -d web
+            # ทำความสะอาด image dangling (ไม่จำเป็น แต่ช่วยลดพื้นที่)
+            docker image prune -f
+
+      # Verify
+      - run:
+          name: Verify deployment
+          command: |
+            echo "Running containers:"
+            docker ps
+            echo "Container logs (last 50 lines):"
+            docker logs --tail 50 $(docker ps --filter "name=_web_1" --format "{{.ID}}" || true)
 
 workflows:
-  build_and_test:
+  build_and_deploy:
     jobs:
-      - build
+      - build_push_deploy
