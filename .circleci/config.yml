@@ -15,63 +15,118 @@
 #     jobs:
 #       - build
 
+# version: 2.1
+
+# jobs:
+#   build_push_deploy:
+#     machine: true
+#     resource_class: tar3kom/test_build_deploy
+#     environment:
+#       DOCKER_IMAGE: "tar3kom/nginx-node-test"
+#       IMAGE_TAG_SHA: << pipeline.git.revision >>
+#     steps:
+#       - checkout
+
+#       # ตรวจสอบว่ามี docker และ docker-compose
+#       - run:
+#           name: Check Docker & docker-compose
+#           command: |
+#             docker --version
+#             docker compose --version || (echo "Please install docker-compose on the runner" && exit 1)
+#             whoami
+#             docker ps
+
+#       # Login Docker Hub (เก็บ secret ใน CircleCI Project/Context เป็น env: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
+#       - run:
+#           name: Docker Hub Login
+#           command: |
+#             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+#       # Build image แล้ว tag เป็นทั้ง commit SHA และ latest (หรือจะตัด latest ออกก็ได้)
+#       - run:
+#           name: Build image
+#           command: |
+#             # docker build -t "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}" -t "${DOCKER_IMAGE}:latest" .
+#             docker build -t "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}" .
+
+#       # Push ทั้งสอง tag
+#       - run:
+#           name: Push images
+#           command: |
+#             docker push "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}"
+#             # docker push "${DOCKER_IMAGE}:latest"
+
+#       # Deploy ด้วย docker-compose บนเครื่อง runner นี้
+#       # เราจะสร้างไฟล์ .env เพื่อส่ง IMAGE_TAG ให้ compose
+#       - run:
+#           name: Deploy with docker-compose
+#           command: |
+#             echo "IMAGE_TAG=${IMAGE_TAG_SHA}" > .env
+#             docker compose pull web || true
+#             docker compose up -d web
+#             docker image prune -f
+
+#       # Verify
+#       - run:
+#           name: Verify deployment
+#           command: |
+#             echo "Running containers:"
+#             docker ps
+
+# workflows:
+#   build_and_deploy:
+#     jobs:
+#       - build_push_deploy
+
 version: 2.1
+
+orbs:
+  docker: circleci/docker@2.7.4
+
+# ✅ ประกาศ "pipeline parameter" ไว้ระดับบนสุด
+parameters:
+  docker_image:
+    type: string
+    default: "tar3kom/nginx-node-test"
 
 jobs:
   build_push_deploy:
     machine: true
     resource_class: tar3kom/test_build_deploy
-    environment:
-      DOCKER_IMAGE: "tar3kom/nginx-node-test"
-      IMAGE_TAG_SHA: << pipeline.git.revision >>
     steps:
       - checkout
 
-      # ตรวจสอบว่ามี docker และ docker-compose
       - run:
-          name: Check Docker & docker-compose
+          name: Check Docker & Compose
           command: |
             docker --version
-            docker compose --version || (echo "Please install docker-compose on the runner" && exit 1)
-            whoami
-            docker ps
+            docker compose version
 
-      # Login Docker Hub (เก็บ secret ใน CircleCI Project/Context เป็น env: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
-      - run:
-          name: Docker Hub Login
-          command: |
-            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      # Login Docker Hub (ตั้งค่า env DOCKERHUB_USERNAME/DOCKERHUB_TOKEN ใน Project/Context)
+      - docker/login:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_TOKEN
 
-      # Build image แล้ว tag เป็นทั้ง commit SHA และ latest (หรือจะตัด latest ออกก็ได้)
-      - run:
-          name: Build image
-          command: |
-            # docker build -t "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}" -t "${DOCKER_IMAGE}:latest" .
-            docker build -t "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}" .
+      # ใช้ pipeline parameter
+      - docker/build:
+          image: << pipeline.parameters.docker_image >>
+          tag: << pipeline.git.revision >>
 
-      # Push ทั้งสอง tag
-      - run:
-          name: Push images
-          command: |
-            docker push "${DOCKER_IMAGE}:${IMAGE_TAG_SHA}"
-            # docker push "${DOCKER_IMAGE}:latest"
+      - docker/push:
+          image: << pipeline.parameters.docker_image >>
+          tag: << pipeline.git.revision >>
 
-      # Deploy ด้วย docker-compose บนเครื่อง runner นี้
-      # เราจะสร้างไฟล์ .env เพื่อส่ง IMAGE_TAG ให้ compose
       - run:
-          name: Deploy with docker-compose
+          name: Deploy with docker compose
           command: |
-            echo "IMAGE_TAG=${IMAGE_TAG_SHA}" > .env
+            echo "IMAGE_TAG=<< pipeline.git.revision >>" > .env
             docker compose pull web || true
             docker compose up -d web
             docker image prune -f
 
-      # Verify
       - run:
-          name: Verify deployment
-          command: |
-            echo "Running containers:"
-            docker ps
+          name: Verify
+          command: docker ps
 
 workflows:
   build_and_deploy:
