@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     machine: true
-    resource_class: tar3kom/testing_lab
+    resource_class: tar3kom/test_build_deploy
     steps:
       - run: echo "Hello From Circle CI Runner"
       - run: docker --version
