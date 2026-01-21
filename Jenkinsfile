@@ -76,12 +76,16 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh """
-                    docker build \
+                    docker buildx build \
+                      --platform linux/amd64 \
                       -t ${IMAGE_NAME}:${TAG} \
-                      -t ${IMAGE_NAME}:latest .
+                      -t ${IMAGE_NAME}:latest \
+                      --load \
+                      .
                 """
             }
         }
+
 
         stage('Push Docker Image') {
             steps {
