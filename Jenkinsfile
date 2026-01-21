@@ -14,7 +14,7 @@ pipeline {
         DEPLOY_BRANCH = "deploy"
         DEPLOY_PATH   = "deploy-repo"
         DEPLOY_REPO   = "github.com/tar3kom/nginx-node-test.git"
-        ARGO_APP      = "mnsp-frontend-dashboard"
+        ARGO_APP      = "nginx-node-test-2"
         ARGO_URL = "http://argocd.test.com"
     }
 
