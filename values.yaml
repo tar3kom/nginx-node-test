@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: tar3kom/nginx-node-test
-  tag: latest
+  tag: 16
   pullPolicy: Always
 
 imagePullSecrets:
