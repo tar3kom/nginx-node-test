@@ -46,7 +46,7 @@ pipeline {
                     ).trim()
         
                     if (tag) {
-                        env.TAG = tag
+                        env.TAG = "${BUILD_NUMBER}"
                     } else {
                         env.TAG = "latest"
                     }
