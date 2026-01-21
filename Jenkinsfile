@@ -117,27 +117,28 @@ pipeline {
                     sh '''
                         set -e
                         echo "🚀 GitOps deploy: update image tag"
-
+        
                         git clone --branch ${DEPLOY_BRANCH} \
                           https://${GIT_USER}:${GIT_TOKEN}@${DEPLOY_REPO} \
                           ${DEPLOY_PATH}
-
+        
                         cd ${DEPLOY_PATH}
-
-                        sed -i "/^image:/,/^[^ ]/ s|^\\s*tag: .*|  tag: ${TAG}|" values.yaml
-
+        
+                        sed -i '' "/^image:/,/^[^ ]/ s|^[[:space:]]*tag: .*|  tag: ${TAG}|" values.yaml
+        
                         git config user.name "jenkins[bot]"
                         git config user.email "jenkins[bot]@example.com"
-
+        
                         git add values.yaml
                         git commit -m "chore: bump image tag ${TAG}" || echo "No changes"
                         git push origin ${DEPLOY_BRANCH}
-
+        
                         echo "✅ GitOps updated to tag ${TAG}"
                     '''
                 }
             }
         }
+
 
         // ----------------------
         // ArgoCD Sync
