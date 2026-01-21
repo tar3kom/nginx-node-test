@@ -1,0 +1,29 @@
+# ignore VCS
+.git/
+.gitignore
+.gitattributes
+
+# package managers / builds
+node_modules/
+dist/
+build/
+coverage/
+.tmp/
+.pnpm-store/
+vendor/
+
+# archives, images, binaries, etc.
+*.tgz
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.iso
+*.img
+*.bin
+*.pack
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp
