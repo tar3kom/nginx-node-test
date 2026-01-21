@@ -1,9 +1,9 @@
 namespace: nginx-node-test
-replicaCount: 3
+replicaCount: 1
 
 image:
-  repository: https://github.com/tar3kom/nginx-node-test.git
-  tag: 251106_2_korn
+  repository: tar3kom/nginx-node-test
+  tag: latest
   pullPolicy: Always
 
 imagePullSecrets:
@@ -17,5 +17,5 @@ imagePullSecrets:
 
 service:
   type: ClusterIP
-  port: 8061
+  port: 80
   targetPort: 80
