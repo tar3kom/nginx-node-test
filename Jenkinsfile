@@ -10,30 +10,48 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "tar3kom/nginx-node-test"
+        IMAGE_NAME   = "tar3kom/nginx-node-test"
         DEPLOY_BRANCH = "deploy"
         DEPLOY_PATH   = "deploy-repo"
-        DEPLOY_REPO = "github.com/tar3kom/nginx-node-test.git"
+        DEPLOY_REPO   = "github.com/tar3kom/nginx-node-test.git"
         ARGO_APP      = "mnsp-frontend-dashboard"
-        ARGO_URL      = "https://mnsp-argocd.inet.co.th"
+        ARGO_URL = "http://argocd.test.com"
     }
 
     stages {
 
         // ----------------------
-        // Checkout (Tag only)
+        // Checkout
         // ----------------------
+        // stage('Checkout') {
+        //     steps {
+        //         checkout scm
+        //         script {
+        //             env.TAG = sh(
+        //                 script: 'git describe --tags --always',
+        //                 returnStdout: true
+        //             ).trim()
+        //         }
+        //         echo "🏷 Deploy tag = ${TAG}"
+        //     }
+        // }
+        
         stage('Checkout') {
-            when { buildingTag() }
             steps {
                 checkout scm
                 script {
-                    env.TAG = sh(
-                        script: 'git describe --tags',
+                    def tag = sh(
+                        script: 'git describe --tags --exact-match 2>/dev/null || true',
                         returnStdout: true
                     ).trim()
+        
+                    if (tag) {
+                        env.TAG = tag
+                    } else {
+                        env.TAG = "latest"
+                    }
                 }
-                echo "🏷 Deploy tag = ${TAG}"
+                echo "🏷 Image tag = ${TAG}"
             }
         }
 
@@ -41,14 +59,12 @@ pipeline {
         // Install & Test
         // ----------------------
         stage('Install Dependencies') {
-            when { buildingTag() }
             steps {
                 sh 'npm ci'
             }
         }
 
         stage('Test') {
-            when { buildingTag() }
             steps {
                 sh 'npm test'
             }
@@ -58,7 +74,6 @@ pipeline {
         // Build & Push Docker Image
         // ----------------------
         stage('Build Docker Image') {
-            when { buildingTag() }
             steps {
                 sh """
                     docker build \
@@ -69,7 +84,6 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            when { buildingTag() }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -89,10 +103,9 @@ pipeline {
         }
 
         // ----------------------
-        // GitOps Deploy (branch deploy)
+        // GitOps Deploy
         // ----------------------
         stage('GitOps Deploy') {
-            when { buildingTag() }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -130,7 +143,6 @@ pipeline {
         // ArgoCD Sync
         // ----------------------
         stage('ArgoCD Sync') {
-            when { buildingTag() }
             steps {
                 withCredentials([
                     string(
@@ -157,10 +169,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Tag deploy success'
+            echo '✅ Deploy success'
         }
         failure {
-            echo '❌ Tag deploy failed'
+            echo '❌ Deploy failed'
         }
         always {
             echo '📦 Pipeline finished'
