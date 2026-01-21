@@ -1,8 +1,8 @@
-namespace: nginx-node-test
-replicaCount: 3
+namespace: testapp
+replicaCount: 1
 
 image:
-  repository: docker.io/tar3kom/nginx-node-test
+  repository: tar3kom/nginx-node-test
   tag: latest
   pullPolicy: Always
 
@@ -17,5 +17,5 @@ imagePullSecrets:
 
 service:
   type: ClusterIP
-  port: 8061
+  port: 80
   targetPort: 80
