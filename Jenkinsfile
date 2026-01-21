@@ -40,20 +40,12 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    def tag = sh(
-                        script: 'git describe --tags --exact-match 2>/dev/null || true',
-                        returnStdout: true
-                    ).trim()
-        
-                    if (tag) {
-                        env.TAG = "${BUILD_NUMBER}"
-                    } else {
-                        env.TAG = "latest"
-                    }
+                    env.TAG = "${BUILD_NUMBER}"
                 }
                 echo "🏷 Image tag = ${TAG}"
             }
         }
+
 
         // ----------------------
         // Install & Test
