@@ -1,4 +1,4 @@
-namespace: nginx-node-test
+namespace: testapp
 replicaCount: 1
 
 image:
