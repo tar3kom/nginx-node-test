@@ -2,8 +2,8 @@ namespace: nginx-node-test
 replicaCount: 3
 
 image:
-  repository: https://github.com/tar3kom/nginx-node-test.git
-  tag: 251106_2_korn
+  repository: docker.io/tar3kom/nginx-node-test
+  tag: latest
   pullPolicy: Always
 
 imagePullSecrets:
